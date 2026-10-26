@@ -1,0 +1,32 @@
+{
+    "admin_only": {
+        "description": "仅管理员可切换人格",
+        "type": "bool",
+        "default": true,
+        "hint": "开启后普通群成员只能用 /人格列表、/人格当前 查询，不能改动人格"
+    },
+    "allow_temporary": {
+        "description": "允许限时切换",
+        "type": "bool",
+        "default": true,
+        "hint": "开启后 /人格切换 名称 30 表示 30 分钟后自动还原原人格"
+    },
+    "max_temp_minutes": {
+        "description": "限时切换最长分钟数",
+        "type": "int",
+        "default": 720,
+        "hint": "超过该时长的限时切换会被拒绝，默认 720 分钟（12 小时）"
+    },
+    "show_prompt_preview": {
+        "description": "列表里附带人格提示词预览",
+        "type": "bool",
+        "default": false,
+        "hint": "开启后 /人格列表 会额外显示每个人格提示词的前 60 字，人格涉及私密设定时建议关闭"
+    },
+    "max_list_rows": {
+        "description": "列表最多显示条数",
+        "type": "int",
+        "default": 50,
+        "hint": "人格很多时避免刷屏，超出的部分只提示总数"
+    }
+}
