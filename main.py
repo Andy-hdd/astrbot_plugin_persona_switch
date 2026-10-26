@@ -17,7 +17,8 @@ import asyncio
 import time
 
 from astrbot.api import AstrBotConfig, logger, sp
-from astrbot.api.event import AstrMessageEvent, filter
+from astrbot.api.event import AstrMessageEvent, MessageChain, filter
+from astrbot.api.message_components import Plain
 from astrbot.api.star import Context, Star
 
 SCOPE = "umo"
@@ -36,6 +37,7 @@ class PersonaSwitchPlugin(Star):
         self.max_temp_minutes = max(1, int(config.get("max_temp_minutes", 720)))
         self.show_prompt_preview = bool(config.get("show_prompt_preview", False))
         self.max_list_rows = max(1, int(config.get("max_list_rows", 50)))
+        self.notify_on_restore = bool(config.get("notify_on_restore", True))
 
         # umo -> 限时切换任务 / 到期时间戳
         self._temp_tasks: dict[str, asyncio.Task] = {}
@@ -137,7 +139,13 @@ class PersonaSwitchPlugin(Star):
         if task and not task.done():
             task.cancel()
 
-    def _schedule_restore(self, umo: str, old_persona: str | None, minutes: int) -> None:
+    def _schedule_restore(
+        self,
+        umo: str,
+        old_persona: str | None,
+        minutes: int,
+        switched_persona: str,
+    ) -> None:
         self._cancel_temp_task(umo)
 
         async def _worker(task_holder: list) -> None:
@@ -145,6 +153,8 @@ class PersonaSwitchPlugin(Star):
                 await asyncio.sleep(minutes * 60)
                 await self._set_persona_for_session(umo, old_persona)
                 logger.info(f"[persona_switch] session={umo} 限时人格已到期并还原")
+                if self.notify_on_restore:
+                    await self._notify_restored(umo, switched_persona, minutes)
             except asyncio.CancelledError:
                 raise
             except Exception as exc:  # noqa: BLE001
@@ -159,6 +169,21 @@ class PersonaSwitchPlugin(Star):
         holder.append(task)
         self._temp_tasks[umo] = task
         self._temp_deadlines[umo] = time.time() + minutes * 60
+
+    async def _notify_restored(
+        self, umo: str, switched_name: str, minutes: int
+    ) -> None:
+        """限时切换到期、人格还原后，在原会话发一条「切换结束」提示。"""
+        current, _ = await self._effective_persona(umo)
+        text = (
+            f"⏰ 限时切换结束：「{switched_name}」已到期（限时 {minutes} 分钟）。\n"
+            f"本会话已还原为「{current}」。"
+        )
+        try:
+            await self.context.send_message(umo, MessageChain([Plain(text)]))
+            logger.info(f"[persona_switch] session={umo} 已发送切换结束提示")
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(f"[persona_switch] 切换结束提示发送失败：{exc}")
 
     # ------------------------------------------------------------------ 指令
 
@@ -232,9 +257,10 @@ class PersonaSwitchPlugin(Star):
                 umo,
                 str(old_name) if old_name else None,
                 minutes,
+                new_name,
             )
             yield event.plain_result(
-                f"本会话已切到「{new_name}」，{minutes} 分钟后自动还原。"
+                f"本会话已切到「{new_name}」，{minutes} 分钟后自动还原并通知你。"
             )
             return
 

@@ -11,6 +11,12 @@
         "default": true,
         "hint": "开启后 /人格切换 名称 30 表示 30 分钟后自动还原原人格"
     },
+    "notify_on_restore": {
+        "description": "限时切换到期时发送提示",
+        "type": "bool",
+        "default": true,
+        "hint": "人格式还原后，会在原会话发一条「限时切换结束」提示；不想打扰可关闭"
+    },
     "max_temp_minutes": {
         "description": "限时切换最长分钟数",
         "type": "int",

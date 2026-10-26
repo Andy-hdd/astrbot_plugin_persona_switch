@@ -1,8 +1,15 @@
 name: astrbot_plugin_persona_switch
 display_name: 人格会话切换
-desc: 用指令给当前群聊/私聊切换 AstrBot 人格，支持限时切换与一键还原，与 WebUI 会话人格设置互通
+desc: 用指令给当前群聊/私聊切换 AstrBot 人格，支持限时切换（到期自动还原并提示）与一键还原，与 WebUI 会话人格设置互通
 short_desc: 指令切换会话人格
-help: 使用 /人格列表 查看人格；/人格切换 <序号或名称> [限时分钟] 切换；/人格当前 查看；/人格重置 还原为全局默认
-version: v1.0.0
-author: 小鲸鱼
+help: 使用 /人格列表 查看人格；/人格切换 <序号或名称> [限时分钟] 切换；/人格当前 查看；/人格重置 还原为全局默认；限时切换到期会自动还原并发提示
+version: v1.0.1
+author: 黄豆豆
+repo: https://github.com/Andy-hdd/astrbot_plugin_persona_switch
+social_link: https://github.com/Andy-hdd
 astrbot_version: ">=4.16,<5"
+tags:
+  - 人格
+  - persona
+  - 人格切换
+  - QQ
